@@ -1,6 +1,6 @@
 
 from flask import Flask
-
+from flask import request
 
 class Host:
 
@@ -27,5 +27,5 @@ class FlaskHost(SimpleHost):
         else:
             self.app.run(port=self.port)
 
-    def add_endpoint(self, name, func, base_path='/'):
-        self.app.add_url_rule(base_path, name, func)
+    def add_endpoint(self, name, func, base_path='/', **kwargs):
+        self.app.add_url_rule(base_path, name, lambda: func(request.args), kwargs)
