@@ -4,8 +4,8 @@ import os
 import regex as re
 
 bucket_name='uottahack18'
-ACCESS_ID = 'AKIAJAO4JDKXZG6QMNNQ'
-ACCESS_KEY = 'iVBQrlRUm4D6pF4GE6LwC7p/tyZgw3g4LOCM64Ux'
+ACCESS_ID = 'AKIAI5AFWS4QZ7DHKZBA'
+ACCESS_KEY = 'DVZzDCEGjgznb3aoW//PyTYtb18zfhv3tv5SRhfA'
 
 def get_keywords(filename):
     size = os.path.getsize(filename)
