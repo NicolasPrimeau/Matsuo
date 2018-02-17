@@ -9,6 +9,6 @@ service endpoints:
   describe:
     hostname: localhost
     port: 0
-  haiku_generator:
+  haiku generator:
     hostname: localhost
     port: 0
