@@ -1,0 +1,14 @@
+
+service endpoints:
+  coordinator:
+    hostname: localhost
+    port: 0
+  io:
+    hostname: localhost
+    port: 0
+  describe:
+    hostname: localhost
+    port: 0
+  haiku_generator:
+    hostname: localhost
+    port: 0
