@@ -2,6 +2,7 @@
 from flask import Flask
 from flask import request
 
+
 class Host:
 
     def __init__(self, app_name, hostname='localhost', port=80):
