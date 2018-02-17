@@ -1,3 +1,10 @@
+bin
+.idea
+local
+lib
+include
+share
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
