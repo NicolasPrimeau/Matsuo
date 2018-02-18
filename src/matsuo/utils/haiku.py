@@ -1,10 +1,6 @@
 from textstat import textstat
 
 
-def compute_haiku_coherence(haiku):
-    return 0
-
-
 class Haiku:
 
     def __init__(self, lines):
@@ -18,7 +14,10 @@ class Haiku:
         for idx in range(len(self.lines)):
             syllables = 0
             for word in self.lines[idx]:
-                syllables += textstat.textstat.syllable_count(word)
+                if word is not '':
+                    syllables += textstat.textstat.syllable_count(word)
+                else:
+                    raise ValueError('Not a haiku')
             if syllables > constraints[idx]:
                 raise ValueError('Not a haiku')
 

@@ -3,8 +3,11 @@ import json
 import random
 import queue
 from multiprocessing import Process, Queue
+
+import nltk
 from langdetect import detect
 from nltk.tag import StanfordPOSTagger
+from nltk.tag.perceptron import PerceptronTagger
 
 
 JAR = 'stanford-models/stanford-postagger-3.8.0.jar'
@@ -16,11 +19,18 @@ MODELS = {
 
 class HaikuJudge:
 
-    def __init__(self, haiku_model=None):
+    def __init__(self, haiku_model=None, optimized=False):
         self.pos_taggers = dict()
         self.haiku_model = haiku_model
+        self.optimized = optimized
+        if self.optimized:
+            self.tagger = PerceptronTagger()
 
     def tag_line(self, text):
+        if self.optimized:
+            tokens = nltk.word_tokenize(text)
+            tagset = None
+            return nltk.tag._pos_tag(tokens, tagset, self.tagger)
         language = detect(text)
         if language not in MODELS:
             language = random.choice(list(MODELS.keys()))
@@ -31,21 +41,27 @@ class HaikuJudge:
 
     def judge_haiku(self, haiku):
         scores = list()
-        for idx in range(len(haiku)):
-            tagged = self.tag_line(haiku[idx])
-            if tagged is None:
-                return 0
-            annotations = list(map(lambda x: x[1], tagged))
-            scores.append(self.haiku_model.probability(idx, annotations))
+        language = detect(' '.join(haiku[0]))
+        if language not in MODELS:
+            language = random.choice(list(MODELS.keys()))
+        if language not in self.pos_taggers:
+            self.pos_taggers[language] = StanfordPOSTagger(MODELS[language], JAR, encoding='utf-8')
+        annotations = self.pos_taggers[language].tag_sents(haiku)
+        for idx in range(len(annotations)):
+            scores.append(self.haiku_model.probability(idx, annotations[idx]))
+        print(haiku)
+        print(sum(scores) / len(scores))
         return sum(scores) / len(scores)
 
 
 class HaikuModel:
 
-    def __init__(self):
+    def __init__(self, load=False):
         self.train_models = [[], [], []]
         self.statistical_models = None
         self.cnt = 0
+        if load:
+            self.load()
 
     def add_model(self, i, model):
         self.cnt += 1
@@ -138,7 +154,7 @@ if __name__ == '__main__':
         input_q.put(item)
     output_q = Queue()
     processes = list()
-    for i in range(4):
+    for i in range(8):
         processes.append(Process(target=pos_tagger, args=(input_q, output_q)))
     processes.append(Process(target=add_to_model, args=(output_q, )))
 

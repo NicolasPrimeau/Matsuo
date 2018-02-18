@@ -1,7 +1,7 @@
 
 from matsuo.service_base.service import HostedService
-from matsuo.describe_service.describe_service import DescribeService
-from matsuo.haiku_service.haiku_service import HaikuService
+from matsuo.describe_service.service import DescribeService
+from matsuo.haiku_service.service import HaikuService
 from matsuo.utils import requests
 import json
 

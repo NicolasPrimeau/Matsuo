@@ -1,7 +1,7 @@
 
-from matsuo.coordinator_service.coordinator_service import CoordinatorService
-from matsuo.describe_service.describe_service import DescribeService
-from matsuo.haiku_service.haiku_service import HaikuService
+from matsuo.coordinator_service.service import CoordinatorService
+from matsuo.describe_service.service import DescribeService
+from matsuo.haiku_service.service import HaikuService
 from multiprocessing import Process
 
 

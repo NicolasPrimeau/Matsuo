@@ -7,9 +7,22 @@ from deap import tools
 from nltk.corpus import brown
 from textstat import textstat
 
-from matsuo.haiku_service.haiku import Haiku
+from matsuo.utils.haiku import Haiku
 
-words = list(set(brown.words()))
+from matsuo.haiku_judge.judge import HaikuJudge, HaikuModel
+
+
+def get_words():
+    w = list(set(brown.words()))
+    good_words = list()
+    for word in w:
+        if word not in ('!', '?', "'"):
+            good_words.append(word)
+    return good_words
+
+
+words = get_words()
+haiku_judge = None
 keywords = None
 
 
@@ -80,35 +93,39 @@ def _crossover(individual1, individual2):
 
 def _coherence_score(individual):
     if len(individual.lines) != 3:
-        return -1
+        return [-1]
     constraints = [5, 7, 5]
     line_lengths = [0, 0, 0]
     for idx in range(len(line_lengths)):
         for word in individual.lines[idx]:
-            line_lengths[idx] += textstat.textstat.syllable_count(word)
+            try:
+                if len(word) > 0:
+                    line_lengths[idx] += textstat.textstat.syllable_count(word)
+                else:
+                    return [-1]
+            except Exception:
+                return [-1]
 
-    syllable_fitness = 0
+    syllable_constraint = 0
     for idx in range(len(line_lengths)):
-        syllable_fitness += 1 - (1 / len(line_lengths)) * abs(line_lengths[idx] - constraints[idx])
-    words = list()
+        syllable_constraint += 1/len(line_lengths) - (1/len(line_lengths)) * abs(line_lengths[idx] - constraints[idx])
+
+    haiku_words = list()
     for line in individual.lines:
-        words.extend(line)
-
-    words = set(words)
-    occurance = 0
-    for keyword in keywords:
-        if keyword in words:
-            occurance += 1
+        haiku_words.extend(line)
+    haiku_words = set(haiku_words)
+    occurance = sum(map(lambda word: 1 if word in keywords else 0, haiku_words))
     keyword_fitness = 1 - 1/occurance
-
-    return [keyword_fitness * syllable_fitness]
+    return [syllable_constraint * keyword_fitness * haiku_judge.judge_haiku(individual.lines)]
 
 
 def _create_individual():
-    return Individual([[random.choice(keywords)], [random.choice(keywords)], [random.choice(keywords)]])
+    return Individual([[random.choice(keywords), random.choice(words), random.choice(words)],
+                       [random.choice(words), random.choice(keywords), random.choice(words)],
+                       [random.choice(words), random.choice(words), random.choice(keywords)]])
 
 
-def create_haiku_with_ga(kws, mutation_prob=0.05, crossover_prob=0.1, max_gen=500):
+def create_haiku_with_ga(kws, mutation_prob=0.5, crossover_prob=0.1, max_gen=200, pop_size=30):
     global keywords
     keywords = kws
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -122,7 +139,7 @@ def create_haiku_with_ga(kws, mutation_prob=0.05, crossover_prob=0.1, max_gen=50
     toolbox.register("mutate", _mutate)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
-    pop = toolbox.population(n=300)
+    pop = toolbox.population(n=pop_size)
     fitnesses = list(map(toolbox.evaluate, pop))
     for ind, fit in zip(pop, fitnesses):
         ind.fitness.values = fit
@@ -185,6 +202,9 @@ def create_haiku_with_ga(kws, mutation_prob=0.05, crossover_prob=0.1, max_gen=50
 
 
 def create_haiku(kes, fx=create_haiku_with_ga):
+    global haiku_judge
+    if haiku_judge is None:
+        haiku_judge = HaikuJudge(HaikuModel(load=True))
     return fx(kes)
 
 

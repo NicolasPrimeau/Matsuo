@@ -1,5 +1,4 @@
 import json
-import pprint
 
 data = json.load(open('haikus.json'))
 haikus = list()
