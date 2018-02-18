@@ -4,3 +4,5 @@ pyyaml==3.12
 deap==1.2.2
 textstat==0.1.4
 pydictionary==1.3.7
+boto3==1.5.30
+regex==2018.02.08

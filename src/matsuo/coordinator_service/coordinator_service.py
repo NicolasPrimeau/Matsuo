@@ -15,8 +15,8 @@ class CoordinatorService(HostedService):
     SERVICE_NAME = 'Coordinator'
 
     def __init__(self, **kwargs):
-        super().__init__(CoordinatorService.SERVICE_NAME, kwargs)
+        super().__init__(CoordinatorService.SERVICE_NAME, kwargs=kwargs)
 
     def start(self):
-        self.host.add_endpoint('get_haiku', get_haiku, methods=['GET'])
+        self.host.add_endpoint('get_haiku', 'get_haiku', get_haiku, methods=['GET'])
         self.host.start()

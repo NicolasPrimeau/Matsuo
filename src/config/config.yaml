@@ -2,13 +2,13 @@
 service endpoints:
   coordinator:
     hostname: localhost
-    port: 0
+    port: 50000
   io:
     hostname: localhost
-    port: 0
+    port: 80
   describe:
     hostname: localhost
-    port: 0
+    port: 50002
   haiku generator:
     hostname: localhost
-    port: 0
+    port: 50001

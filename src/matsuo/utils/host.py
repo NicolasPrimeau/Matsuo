@@ -21,6 +21,8 @@ class FlaskHost(SimpleHost):
         super().__init__(app_name=service_name, hostname=hostname, port=port)
         self.app = Flask(service_name)
         self.is_publicly_accessible = is_publicly_accessible
+        self.add_endpoint('/', 'index', lambda args: '<h1>Hello World!</h1>')
+        self.add_endpoint('test', 'test', lambda args: '<p>test</p>')
 
     def start(self):
         if self.is_publicly_accessible:
@@ -28,5 +30,7 @@ class FlaskHost(SimpleHost):
         else:
             self.app.run(port=self.port)
 
-    def add_endpoint(self, name, func, base_path='/', **kwargs):
-        self.app.add_url_rule(base_path, name, lambda: func(request.args), kwargs)
+    def add_endpoint(self, name, func_name, func, methods=('GET', 'POST')):
+        if name[0] != '/':
+            name = '/' + name
+        self.app.add_url_rule(name, endpoint=func_name, view_func=lambda: func(request.args), methods=methods)

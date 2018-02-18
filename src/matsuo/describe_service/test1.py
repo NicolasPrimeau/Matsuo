@@ -1,5 +1,4 @@
 import boto3
-from PIL import Image
 import os
 import regex as re
 

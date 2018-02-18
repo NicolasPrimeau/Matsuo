@@ -15,8 +15,8 @@ class HaikuService(HostedService):
     SERVICE_NAME = 'Haiku Generator'
 
     def __init__(self, **kwargs):
-        super().__init__(HaikuService.SERVICE_NAME, kwargs)
+        super().__init__(HaikuService.SERVICE_NAME, kwargs=kwargs)
 
     def start(self):
-        self.host.add_endpoint('generate_haiku', generate_haiku, methods=['GET'])
+        self.host.add_endpoint('generate_haiku', 'generate_haiku', generate_haiku, methods=['GET'])
         self.host.start()
