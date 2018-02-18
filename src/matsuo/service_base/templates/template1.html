@@ -2,15 +2,28 @@
 {% block body %}
 
 <div class="block1">
-<h1>Welcome to the haiku generator</h1>
+<h1>Welcome to Matsuo</h1>
   <p>
-      <h2>{{text}}</h2>
+    {% if filename %}
+      <img src="{{ url_for('send_file', filename=filename) }}">
+    {% else %}
+      <h2>"Please submit a picture!"</h2>
+    {% endif %}
+    {% if haiku %}
+      {{haiku}}
+    {% endif %}
   </p>
-  <form id="upload-form" action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" accept="image/">
-    <input type="submit" value="send">
-  </form>
+  <p>
+    <form id="upload-form" action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file" accept="image/">
+      <input type="submit" name='submit' value="Upload">
+    </form>
   </p>
-<img src="{{url_for('send_image', filename=image_name)}}">
+
+  <p>
+      <input type="submit" name="gen" value="Generate" >
+  </p>
+
+
 </div>
 {% endblock %}
