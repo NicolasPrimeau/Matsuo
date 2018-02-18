@@ -19,7 +19,6 @@ class HostedService(Service):
     def __init__(self, service_name, host_type=FlaskHost, **kwargs):
         super().__init__(service_name=service_name)
         host_config = config_helper.get_config(requests.SERVICE_ENDPOINT_PARAM_NAME, self.service_name)
-        print(host_config)
         self.host = host_type(service_name=self.service_name, hostname=host_config['hostname'],
                               port=host_config['port'], is_publicly_accessible=True)
 

@@ -14,6 +14,6 @@ def get(service_name, api_endpoint, args):
 
 
 def _get(hostname, port, api_endpoint, args):
-    with urllib.request.urlopen('http://{}:{}/{}'.format(
+    with urllib.request.urlopen('http://{}:{}/{}?{}'.format(
             hostname, port, api_endpoint, urllib.parse.urlencode(args))) as url:
         return json.loads(url.read().decode())

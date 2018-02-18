@@ -21,8 +21,7 @@ class FlaskHost(SimpleHost):
         super().__init__(app_name=service_name, hostname=hostname, port=port)
         self.app = Flask(service_name)
         self.is_publicly_accessible = is_publicly_accessible
-        self.add_endpoint('/', 'index', lambda args: '<h1>Hello World!</h1>')
-        self.add_endpoint('test', 'test', lambda args: '<p>test</p>')
+        self.add_endpoint('/', 'index', lambda args: '<h1>{}</h1>'.format(service_name))
 
     def start(self):
         if self.is_publicly_accessible:

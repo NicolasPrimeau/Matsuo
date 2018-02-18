@@ -2,10 +2,9 @@ from matsuo.service_base.service import HostedService
 import boto3
 import os
 import regex as re
+import json
 
 bucket_name='uottahack18'
-ACCESS_ID = 'AKIAI5AFWS4QZ7DHKZBA'
-ACCESS_KEY = 'DVZzDCEGjgznb3aoW//PyTYtb18zfhv3tv5SRhfA'
 
 
 def get_keywords(args):
@@ -13,7 +12,7 @@ def get_keywords(args):
     size = os.path.getsize(filename)
     if(size>5*2**20):
         raise FileSizeLimitExceededError(filename)
-    client = boto3.client('rekognition',region_name='us-east-1',aws_access_key_id=ACCESS_ID, aws_secret_access_key=ACCESS_KEY)
+    client = boto3.client('rekognition',region_name='us-east-1')
     with open(filename,'rb') as imgb:
         img = imgb.read()
         details = {'Bytes':img}
@@ -23,7 +22,7 @@ def get_keywords(args):
     for item in response['Labels']:
         keywords.append(item['Name'])
     print(keywords)
-    return keywords
+    return json.dumps({'keywords': keywords})
 
 
 class DescribeService(HostedService):

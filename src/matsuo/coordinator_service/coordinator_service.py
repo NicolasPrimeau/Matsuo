@@ -3,11 +3,12 @@ from matsuo.service_base.service import HostedService
 from matsuo.describe_service.describe_service import DescribeService
 from matsuo.haiku_service.haiku_service import HaikuService
 from matsuo.utils import requests
+import json
 
 
 def get_haiku(args):
     describe_service_result = requests.get(DescribeService.SERVICE_NAME, 'get_keywords', args)
-    return requests.get(HaikuService.SERVICE_NAME, 'generate_haiku', describe_service_result)
+    return json.dumps(requests.get(HaikuService.SERVICE_NAME, 'generate_haiku', describe_service_result))
 
 
 class CoordinatorService(HostedService):
