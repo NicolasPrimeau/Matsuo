@@ -17,6 +17,7 @@ for haiku in data:
             haiku.append(lines.pop(0))
             if len(haiku) == 3:
                 haikus.append(haiku)
+                haiku = list()
 
 unique = set()
 save = list()
@@ -29,4 +30,4 @@ for haiku in haikus:
 print('Total haikus: {}'.format(len(haikus)))
 print('Total unique haikus: {}'.format(len(save)))
 print('Total discarded: {}'.format(bad))
-json.dump(save, fp=open('haikus.json', 'w'))
+json.dump(save, fp=open('haikus-clean.json', 'w'))

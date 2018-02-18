@@ -2,8 +2,6 @@ from matsuo.haiku_service.solver import create_haiku
 from matsuo.service_base.service import HostedService
 import json
 
-import pprint
-
 
 def generate_haiku(args):
     if 'keywords' not in args:
