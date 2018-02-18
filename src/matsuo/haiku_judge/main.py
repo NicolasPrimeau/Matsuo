@@ -1,6 +1,7 @@
 
 import json
 import random
+import queue
 from multiprocessing import Process, Queue
 from langdetect import detect
 from nltk.tag import StanfordPOSTagger
@@ -104,7 +105,7 @@ def pos_tagger(in_q, out_q):
                 annotated = judge.tag_line(haiku[idx])
                 if annotated is not None:
                     out_q.put((idx, [x[1] for x in annotated]))
-    except in_q.Empty:
+    except queue.Empty:
         pass
 
 
@@ -123,7 +124,7 @@ def add_to_model(in_q):
             if cnt % 250 == 0:
                 model.learn()
                 model.save()
-    except in_q.Empty:
+    except queue.Empty:
         pass
 
     model.learn()
