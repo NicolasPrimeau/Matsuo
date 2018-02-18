@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="block1">
+<h1>Welcome to the haiku generator</h1>
+  <p>
+      <h2>{{text}}</h2>
+  </p>
+  <form id="upload-form" action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" accept="image/">
+    <input type="submit" value="send">
+  </form>
+  </p>
+<img src="{{url_for('send_image', filename=image_name)}}">
+</div>
+{% endblock %}
