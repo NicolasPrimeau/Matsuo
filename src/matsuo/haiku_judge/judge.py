@@ -39,18 +39,19 @@ class HaikuJudge:
 
         return self.pos_taggers[language].tag(text.split())
 
-    def judge_haiku(self, haiku):
+    def judge_haiku(self, haiku, annotated=False):
         scores = list()
-        language = detect(' '.join(haiku[0]))
-        if language not in MODELS:
-            language = random.choice(list(MODELS.keys()))
-        if language not in self.pos_taggers:
-            self.pos_taggers[language] = StanfordPOSTagger(MODELS[language], JAR, encoding='utf-8')
-        annotations = self.pos_taggers[language].tag_sents(haiku)
+        if not annotated:
+            language = detect(' '.join(haiku[0]))
+            if language not in MODELS:
+                language = random.choice(list(MODELS.keys()))
+            if language not in self.pos_taggers:
+                self.pos_taggers[language] = StanfordPOSTagger(MODELS[language], JAR, encoding='utf-8')
+            annotations = self.pos_taggers[language].tag_sents(haiku)
+        else:
+            annotations = haiku
         for idx in range(len(annotations)):
             scores.append(self.haiku_model.probability(idx, annotations[idx]))
-        print(haiku)
-        print(sum(scores) / len(scores))
         return sum(scores) / len(scores)
 
 

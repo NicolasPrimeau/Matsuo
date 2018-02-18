@@ -24,6 +24,7 @@ def get_words():
 words = get_words()
 haiku_judge = None
 keywords = None
+cache = dict()
 
 
 class Fitness:
@@ -61,23 +62,44 @@ class Individual:
 
 
 def _mutate(individual):
-    fxs = [add_word, delete_word, jumble_words]
-    random.choice(fxs)(individual)
+    constraints = [5, 7, 5]
+    line_lengths = [0, 0, 0]
+    for idx in range(len(line_lengths)):
+        for word in individual.lines[idx]:
+            try:
+                if len(word) > 0:
+                    line_lengths[idx] += textstat.textstat.syllable_count(word)
+                else:
+                    return
+            except Exception:
+                return
+
+    for idx in range(len(line_lengths)):
+        if line_lengths[idx] < constraints[idx]:
+            add_word(idx, individual)
+        elif line_lengths[idx] > constraints[idx]:
+            delete_word(idx, individual)
+        else:
+            random.choice((jumble_words, replace_word))(idx, individual)
 
 
-def add_word(individual):
-    random.choice(individual.lines).insert(random.randint(0, len(individual.lines)-1), random.choice(words))
+def add_word(idx, individual):
+    individual.lines[idx].insert(random.randint(0, len(individual.lines) - 1), random.choice(words))
 
 
-def delete_word(individual):
+def delete_word(idx, individual):
     try:
-        random.choice(individual.lines).remove(random.randint(0, len(individual.lines) - 1))
+        individual.lines[idx].remove(random.randint(0, len(individual.lines) - 1))
     except Exception:
         pass
 
 
-def jumble_words(individual):
-    random.shuffle(random.choice(individual.lines))
+def jumble_words(idx, individual):
+    random.shuffle(individual.lines[idx])
+
+
+def replace_word(idx, individual):
+    individual.lines[idx][random.randint(0, len(individual.lines[idx]) - 1)] = random.choice(words)
 
 
 def _crossover(individual1, individual2):
@@ -96,6 +118,7 @@ def _coherence_score(individual):
         return [-1]
     constraints = [5, 7, 5]
     line_lengths = [0, 0, 0]
+
     for idx in range(len(line_lengths)):
         for word in individual.lines[idx]:
             try:
@@ -106,26 +129,38 @@ def _coherence_score(individual):
             except Exception:
                 return [-1]
 
-    syllable_constraint = 0
     for idx in range(len(line_lengths)):
-        syllable_constraint += 1/len(line_lengths) - (1/len(line_lengths)) * abs(line_lengths[idx] - constraints[idx])
+        if line_lengths[idx] != constraints[idx]:
+            return [-1]
 
     haiku_words = list()
     for line in individual.lines:
         haiku_words.extend(line)
     haiku_words = set(haiku_words)
+
     occurance = sum(map(lambda word: 1 if word in keywords else 0, haiku_words))
-    keyword_fitness = 1 - 1/occurance
-    return [syllable_constraint * keyword_fitness * haiku_judge.judge_haiku(individual.lines)]
+
+    annotations = list()
+    for line in individual.lines:
+        annotated = list()
+        for word in line:
+            if word in cache:
+                annotated.append(cache[word])
+            else:
+                for annotation in haiku_judge.tag_line(' '.join(line)):
+                    cache[annotation[0]] = annotation[1]
+                    annotated.append(annotation[1])
+        annotations.append(annotated)
+    return [occurance * haiku_judge.judge_haiku(annotations, annotated=True)]
 
 
 def _create_individual():
-    return Individual([[random.choice(keywords), random.choice(words), random.choice(words)],
-                       [random.choice(words), random.choice(keywords), random.choice(words)],
-                       [random.choice(words), random.choice(words), random.choice(keywords)]])
+    return Individual([[random.choice(keywords) if random.randint(0, 2) == 0 else random.choice(words)],
+                       [random.choice(keywords)],
+                       [random.choice(keywords) if random.randint(0, 2) == 0 else random.choice(words)]])
 
 
-def create_haiku_with_ga(kws, mutation_prob=0.5, crossover_prob=0.1, max_gen=200, pop_size=30):
+def create_haiku_with_ga(kws, mutation_prob=0.5, crossover_prob=0.25, max_gen=250, pop_size=500):
     global keywords
     keywords = kws
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -204,7 +239,7 @@ def create_haiku_with_ga(kws, mutation_prob=0.5, crossover_prob=0.1, max_gen=200
 def create_haiku(kes, fx=create_haiku_with_ga):
     global haiku_judge
     if haiku_judge is None:
-        haiku_judge = HaikuJudge(HaikuModel(load=True))
+        haiku_judge = HaikuJudge(HaikuModel(load=True), optimized=True)
     return fx(kes)
 
 
