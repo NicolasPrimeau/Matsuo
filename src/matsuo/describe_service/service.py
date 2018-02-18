@@ -1,14 +1,15 @@
+from flask import request
+
 from matsuo.service_base.service import HostedService
 import boto3
 import os
-import regex as re
 import json
 
 bucket_name='uottahack18'
 
 
-def get_keywords(args):
-    filename = args['data']
+def get_keywords(*wargs, **kwargs):
+    filename = request.args['data']
     size = os.path.getsize(filename)
     if(size>5*2**20):
         raise FileSizeLimitExceededError(filename)

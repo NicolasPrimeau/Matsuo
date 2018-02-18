@@ -1,3 +1,4 @@
+from flask import request
 
 from matsuo.service_base.service import HostedService
 from matsuo.describe_service.service import DescribeService
@@ -6,8 +7,8 @@ from matsuo.utils import requests
 import json
 
 
-def get_haiku(args):
-    describe_service_result = requests.get(DescribeService.SERVICE_NAME, 'get_keywords', args)
+def get_haiku(*wargs, **kwargs):
+    describe_service_result = requests.get(DescribeService.SERVICE_NAME, 'get_keywords', request.args)
     return json.dumps(requests.get(HaikuService.SERVICE_NAME, 'generate_haiku', describe_service_result))
 
 
