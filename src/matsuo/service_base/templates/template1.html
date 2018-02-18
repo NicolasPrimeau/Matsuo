@@ -9,8 +9,12 @@
     {% else %}
       <h2>"Please submit a picture!"</h2>
     {% endif %}
+  </p>
+  <p>
     {% if haiku %}
-      {{haiku}}
+      <h3>{{haiku1}}</h3>
+      <h3>{{haiku2}}</h3>
+      <h3>{{haiku3}}</h3>
     {% endif %}
   </p>
   <p>
@@ -21,7 +25,9 @@
   </p>
 
   <p>
-      <input type="submit" name="gen" value="Generate" >
+    <form id="generate" action="{{url_for('generate')}}" method="POST" enctype="multipart/form-data">
+      <input type="submit" name='gen' value="Generate">
+    </form>
   </p>
 
 
