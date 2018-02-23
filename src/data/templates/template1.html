@@ -4,29 +4,23 @@
 <div class="block1">
 <h1>Welcome to Matsuo</h1>
   <p>
-    {% if filename %}
-      <img src="{{ url_for('send_file', filename=filename) }}">
+    {% if uid %}
+      <img class="haiku-image" src="/get/image?uid={{ uid }}">
     {% else %}
       <h2>"Please submit a picture!"</h2>
     {% endif %}
   </p>
+  {% if haiku %}
   <p>
-    {% if haiku %}
-      <h3>{{haiku1}}</h3>
-      <h3>{{haiku2}}</h3>
-      <h3>{{haiku3}}</h3>
-    {% endif %}
+    {% for haiku_line in haiku %}
+  <h3>{{haiku_line}}</h3>
+    {% endfor %}
   </p>
-  <p>
+  {% endif %}
+  <p class="form-submit">
     <form id="upload-form" action="{{url_for('upload')}}" method="POST" enctype="multipart/form-data">
       <input type="file" name="file" accept="image/">
-      <input type="submit" name='submit' value="Upload">
-    </form>
-  </p>
-
-  <p>
-    <form id="generate" action="{{url_for('generate')}}" method="POST" enctype="multipart/form-data">
-      <input type="submit" name='gen' value="Generate">
+      <input type="submit" name='submit' value="Get Haiku!">
     </form>
   </p>
 

@@ -1,59 +1,12 @@
+import uuid
+import io
 from PIL import Image
-from flask import render_template, request, url_for, send_from_directory
-import os
-
+from flask import render_template, request, url_for, send_file
+import urllib.parse
 from werkzeug.utils import redirect
 
+from matsuo.io_service.cache import Cache
 from matsuo.service_base.service import HostedService
-
-
-UPLOAD_FOLDER = 'data/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
-
-
-def upload(*wargs, **kwargs):
-    if request.method == 'POST':
-        pic = request.files['file']
-        if pic and allowed_file(pic.filename):
-            pic.save(os.path.join(UPLOAD_FOLDER, pic.filename))
-            img = Image.open(os.path.join(UPLOAD_FOLDER, pic.filename))
-            img.thumbnail((300,300), resample=0)
-            img.save(os.path.join(UPLOAD_FOLDER, pic.filename))
-            with open(UPLOAD_FOLDER + '/current_filename.txt', 'w') as c:
-                c.write(pic.filename)
-            return redirect(url_for('uploaded_file', filename=pic.filename))
-    return redirect(url_for('main'))
-
-
-def uploaded_file(*wargs, **kwargs):
-    return render_template('template1.html', filename=wargs[1]['filename'])
-
-
-def send_file(*wargs, **kwargs):
-    return send_from_directory(UPLOAD_FOLDER, wargs[1]['filename'])
-
-
-def generate(*wargs, **kwargs):
-    haiku = "Five syllables here\nSeven more syllables there\nAre you happy now?"
-    if request.method == 'POST':
-        #-----------
-        #GENERATE THE HAIKU HERE
-        #-----------
-        pass
-    with open(UPLOAD_FOLDER + '/current_filename.txt') as c:
-        filename = c.readline()
-    shaiku=haiku.split('\n')
-    return render_template('template1.html',
-                            haiku=True,
-                            haiku1 = shaiku[0],
-                            haiku2 = shaiku[1],
-                            haiku3 = shaiku[2],
-                            filename=filename)
 
 
 def main(*wargs, **kwargs):
@@ -64,15 +17,55 @@ class IoService(HostedService):
 
     SERVICE_NAME = 'IO'
 
-    def __init__(self, **kwargs):
+    def __init__(self, upload_folder='data/uploads', accepted_extensions={'png', 'jpg', 'jpeg', 'gif'}, **kwargs):
         super().__init__(IoService.SERVICE_NAME, kwargs=kwargs)
-        self.host.app.static_folder = UPLOAD_FOLDER
-        global BASE_PATH
+        self.host.app.static_folder = upload_folder
+        self.upload_folder = upload_folder
+        self.accepted_extensions = accepted_extensions
+        self.cache = Cache()
 
     def start(self):
-        self.host.add_endpoint('/upload', 'upload', upload, methods=['POST'])
-        self.host.add_endpoint('/show/<filename>', 'uploaded_file', uploaded_file, methods=['GET'])
-        self.host.add_endpoint('/uploads/<filename>', 'send_file', send_file, methods=['GET'])
-        self.host.add_endpoint('/generate', 'generate', generate, methods=['POST'])
-        self.host.add_endpoint('/main', 'main', main, methods=['GET'])
+        self.host.add_endpoint('/upload', 'upload', self.upload, methods=['POST'])
+        self.host.add_endpoint('/show', 'uploaded_file', self.uploaded_file, methods=['GET'])
+        self.host.add_endpoint('/get/image', 'get_image', self.get_image, methods=['GET'])
+        self.host.add_endpoint('/', 'main', main, methods=['GET'])
         self.host.start()
+
+    def upload(self, *wargs, **kwargs):
+        if request.method == 'POST':
+            pic = request.files['file']
+            if pic and self.allowed_file(pic.filename):
+                img = Image.open(pic)
+                img.thumbnail((600, 600), resample=0)
+                output = io.BytesIO()
+                img.save(output, format='png')
+                output.seek(0)
+                unique_id = uuid.uuid4().hex
+                self.cache.add_item(unique_id, output)
+                return redirect(url_for('uploaded_file', uid=unique_id))
+        return redirect(url_for('main'))
+
+    def allowed_file(self, filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1] in self.accepted_extensions
+
+    def uploaded_file(self, *wargs, **kwargs):
+        uid = request.args['uid']
+        return render_template('template1.html', haiku=self.get_haiku(self.cache.get_item(uid)), uid=uid)
+
+    def get_image(self, *wargs, **kwargs):
+        return send_file(
+            self.cache.get_item(request.args['uid']),
+            attachment_filename='file.png',
+            mimetype='image/png'
+        )
+
+    def get_haiku(self, image_data):
+        haiku = "Five syllables here\nSeven more syllables there\nAre you happy now?"
+        if request.method == 'GET':
+            #-----------
+            #GENERATE THE HAIKU HERE
+            #-----------
+            pass
+
+        return haiku.split('\n')
