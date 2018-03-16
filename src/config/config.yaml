@@ -5,7 +5,7 @@ service endpoints:
     port: 50001
   io:
     hostname: localhost
-    port: 50000
+    port: 80
   describe:
     hostname: localhost
     port: 50002

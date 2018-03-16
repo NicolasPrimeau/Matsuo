@@ -9,6 +9,8 @@ import json
 
 def get_haiku(*wargs, **kwargs):
     describe_service_result = requests.get(DescribeService.SERVICE_NAME, 'get_keywords', request.args)
+    if describe_service_result['keywords'] is None:
+        return json.dumps({'text': None})
     return json.dumps(requests.get(HaikuService.SERVICE_NAME, 'generate_haiku', describe_service_result))
 
 

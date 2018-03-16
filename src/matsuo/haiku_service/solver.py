@@ -160,7 +160,7 @@ def _create_individual():
                        [random.choice(keywords) if random.randint(0, 2) == 0 else random.choice(words)]])
 
 
-def create_haiku_with_ga(kws, mutation_prob=0.5, crossover_prob=0.25, max_gen=250, pop_size=500):
+def create_haiku_with_ga(kws, mutation_prob=0.75, crossover_prob=0.5, max_gen=50, pop_size=750):
     global keywords
     keywords = kws
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))

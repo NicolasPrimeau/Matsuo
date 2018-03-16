@@ -8,7 +8,7 @@ from matsuo.io_service.service import IoService
 
 
 def main():
-    services = [IoService(), CoordinatorService(), HaikuService(), DescribeService()]
+    services = [CoordinatorService(), HaikuService(), DescribeService()]
     process_pool = list()
     for service in services:
         process_pool.append(Process(target=service.start))

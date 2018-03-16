@@ -1,12 +1,16 @@
 import uuid
 import io
+
+import datetime
 from PIL import Image
 from flask import render_template, request, url_for, send_file
-import urllib.parse
+from io import BytesIO
 from werkzeug.utils import redirect
 
-from matsuo.io_service.cache import Cache
+from matsuo.coordinator_service.service import CoordinatorService
+from matsuo.utils.database.cache import DatabaseCache
 from matsuo.service_base.service import HostedService
+from matsuo.utils.requests import get
 
 
 def main(*wargs, **kwargs):
@@ -22,7 +26,7 @@ class IoService(HostedService):
         self.host.app.static_folder = upload_folder
         self.upload_folder = upload_folder
         self.accepted_extensions = accepted_extensions
-        self.cache = Cache()
+        self.cache = DatabaseCache(expiration_time=datetime.timedelta(minutes=60))
 
     def start(self):
         self.host.add_endpoint('/upload', 'upload', self.upload, methods=['POST'])
@@ -51,21 +55,26 @@ class IoService(HostedService):
 
     def uploaded_file(self, *wargs, **kwargs):
         uid = request.args['uid']
-        return render_template('template1.html', haiku=self.get_haiku(self.cache.get_item(uid)), uid=uid)
+        return render_template('template1.html', haiku=self.get_haiku(uid), uid=uid)
 
     def get_image(self, *wargs, **kwargs):
         return send_file(
-            self.cache.get_item(request.args['uid']),
+            BytesIO(self.cache.get_item(request.args['uid'])),
             attachment_filename='file.png',
             mimetype='image/png'
         )
 
-    def get_haiku(self, image_data):
-        haiku = "Five syllables here\nSeven more syllables there\nAre you happy now?"
+    def get_haiku(self, image_name):
+        haiku = None
         if request.method == 'GET':
-            #-----------
-            #GENERATE THE HAIKU HERE
-            #-----------
-            pass
+            haiku = get(CoordinatorService.SERVICE_NAME, 'get_haiku', {'image_id': image_name})
+        if haiku is None or haiku['text'] is None:
+            return ["500 error very", "concerning but still ok", "try again please"]
+        elif haiku['text'] == 'None':
+            return ['We failed in our', 'purpose to deliver good', 'haikus sepuku']
+        return haiku['text'].split('\n')
 
-        return haiku.split('\n')
+
+if __name__ == "__main__":
+    service = IoService()
+    service.start()
