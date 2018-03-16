@@ -71,7 +71,7 @@ class IoService(HostedService):
         if haiku is None or haiku['text'] is None:
             return ["500 error very", "concerning but still ok", "try again please"]
         elif haiku['text'] == 'None':
-            return ['We failed in our', 'purpose to deliver good', 'haikus sepuku']
+            return ['We failed in our', 'purpose to deliver good', 'haikus seppuku']
         return haiku['text'].split('\n')
 
 
